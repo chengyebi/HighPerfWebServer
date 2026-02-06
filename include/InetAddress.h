@@ -10,7 +10,7 @@ public:
     InetAddress(); //默认构造函数
     InetAddress(const char *ip, uint16_t port); //带参构造函数
     ~InetAddress() = default; //析构函数用默认的
-    struct sockaddr_in *getAddr(); //得到地址
+    [[nodiscard]] const struct sockaddr_in *getAddr() const; //得到地址,[[nodiscard]]编译时提醒不忽略返回值
     socklen_t getAddrLen() const; //得到长度
     void setAddr(struct sockaddr_in addr_in, socklen_t addr_len_in);
 };

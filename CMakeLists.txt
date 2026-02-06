@@ -13,4 +13,5 @@ add_executable(server
         main.cpp
         src/InetAddress.cpp
         src/Socket.cpp
+        src/Epoll.cpp
 )
