@@ -23,7 +23,7 @@ public:
     //核心网络操作
     void bind(const InetAddress& addr);//绑定地址
     void listen();//开始监听
-    [[nodiscard]] int accept(InetAddress& client_addr);//c++17特性，忽略返回值会导致编译器警告
+    [[nodiscard]] int accept(InetAddress& client_addr);//nodiscard是c++17特性，忽略返回值会导致编译器警告
     void setNonBlocking();//设置非阻塞，Epoll ET模式需要这个
     int getFd() const;//获取fd;
 };

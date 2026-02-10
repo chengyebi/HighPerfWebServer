@@ -7,6 +7,8 @@
 #include "Socket.h"
 #include "Epoll.h"
 #include "InetAddress.h"
+#include "Buffer.h"
+#include "HttpRequest.h"
 
 #define BUFFER_SIZE 1024
 
@@ -17,23 +19,41 @@ void setNonBlocking(int fd) {
 }
 
 void handleReadEvent(int sockfd){
-    char buf[BUFFER_SIZE];
+    Buffer buffer;
+    int saveErrno=0;
+    HttpRequest req;
     while (true) {
-        bzero(&buf,sizeof(buf));
-        ssize_t bytes_read=read(sockfd,buf,sizeof(buf));
+        ssize_t bytes_read=buffer.readFd(sockfd,&saveErrno);
         if (bytes_read>0) {
-                //业务逻辑是回显数据
-                std::cout<<"Message from client fd"<<sockfd<<":" <<buf;
-                write(sockfd,buf,bytes_read);
+            //解析buffer，parse会读取buffer数据，根据解析进度移动指针
+            if (req.parse(buffer)) {
+                //如果请求解析完整了，找到了\r\n\r\n:
+                if (req.isComplete()) {
+                    std::cout<<"HTTP Request: "<<req.method()<<" "<<req.path()<<std::endl;
+                //构造响应，webserver的核心：根据请求给出数据
+                //先写死一个200 OK的页面
+                std::string body="<html><body><h1>Hello Tencent!</h1></body></html>";
+                std::string response=
+                    "HTTP/1.1 200 OK\r\n"
+                    "Content-Type: text/html\r\n"
+                    "Content-Length: "+std::to_string(body.size())+"\r\n"
+                    "\r\n"+body;
+                //发送回浏览器
+                write(sockfd,response.c_str(),response.size());
+                //简单短连接处理，发完就关闭
+                close(sockfd);
+                return;//结束，socket已经关闭
+            }
+        }
         }
             else if (bytes_read==-1) {
-                if (errno==EINTR) {
+                if (saveErrno==EINTR) {
                     continue;//信号中断，继续尝试
                 }
-                if (errno==EAGAIN||errno==EWOULDBLOCK) {
+                if (saveErrno==EAGAIN||saveErrno==EWOULDBLOCK) {
                     break;//缓冲区已经空，必须等待下次通知
                 }
-                //真正的IO错误
+                //真正的错误
                 perror("read error");
                 close(sockfd);
                 break;

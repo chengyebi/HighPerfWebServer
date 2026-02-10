@@ -8,7 +8,6 @@ InetAddress::InetAddress(const char *ip, uint16_t port) : addr{}, addr_len(sizeo
     if (inet_pton(AF_INET,ip,&addr.sin_addr)<=0) {//将点分十进制的IP地址字符串转换为网络字节序的二进制格式
         throw std::runtime_error("Invalid IP address");
     }//inet_pton返回0表示ip地址无效，返回-1表示协议族不支持，返回1表示转换成功
-
     addr.sin_port = htons(port); //主机字节序转换成网络字节序，网络传输统一必须用大端序
 }
 

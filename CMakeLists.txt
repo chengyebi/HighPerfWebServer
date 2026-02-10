@@ -14,4 +14,6 @@ add_executable(server
         src/InetAddress.cpp
         src/Socket.cpp
         src/Epoll.cpp
+        src/Buffer.cpp
+        src/HttpRequest.cpp
 )
