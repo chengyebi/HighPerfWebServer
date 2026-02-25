@@ -25,7 +25,7 @@ Socket::Socket(int fd):fd_(fd) {
 //析构函数，RAII核心
 Socket::~Socket() {
     if (fd_!=-1) {
-        close(fd_);//自动关闭，防止fd泄露
+        close();//自动关闭，防止fd泄露
         fd_=-1;
     }
 }
@@ -85,14 +85,19 @@ Socket::Socket(Socket&& other) noexcept:fd_(other.fd_) {
 Socket& Socket::operator=(Socket&& other) noexcept {
     if (this!=&other) {
         if (fd_!=-1) {
-            close(fd_);//自己手里如果有资源就先释放
+            ::close(fd_);//自己手里如果有资源就先释放
         }
         fd_=other.fd_;//抢别人的资源
         other.fd_=-1;//释放别人的资源
     }
     return *this;
 }
-
+void Socket::close() {
+    if (fd_!=-1) {
+        ::close(fd_);
+        fd_=-1;
+    }
+}
 
 
 

@@ -16,4 +16,5 @@ add_executable(server
         src/Epoll.cpp
         src/Buffer.cpp
         src/HttpRequest.cpp
+        src/HttpConnection.cpp
 )

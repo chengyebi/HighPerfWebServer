@@ -26,4 +26,5 @@ public:
     [[nodiscard]] int accept(InetAddress& client_addr);//nodiscard是c++17特性，忽略返回值会导致编译器警告
     void setNonBlocking();//设置非阻塞，Epoll ET模式需要这个
     int getFd() const;//获取fd;
+    void close();
 };
