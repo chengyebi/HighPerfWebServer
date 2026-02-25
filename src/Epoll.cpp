@@ -49,3 +49,12 @@ void  Epoll::poll(std::vector<struct epoll_event>& active_events,int timeout) {
         active_events.push_back(events_[i]);
     }
 }
+void Epoll::modFd(int fd,uint32_t events) {
+    struct epoll_event ev;
+    bzero(&ev,sizeof(ev));
+    ev.data.fd=fd;
+    ev.events=events;
+    if (epoll_ctl(epfd_,EPOLL_CTL_MOD,fd,&ev)==-1) {
+        throw std::runtime_error("epoll mod event error");
+    }
+}

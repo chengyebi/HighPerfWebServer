@@ -18,8 +18,10 @@ public:
     //核心接口：添加文件描述符到epoll监控中
     //enable_et:是否开启ET模式，默认开启，开启是高性能
     void addFd(int fd,uint32_t op);
+    //让epoll类有动态修改监听事件的能力
+    void modFd(int fd,uint32_t events);
     //核心接口：等待事件发生
     //time_out:超时时间，-1表示永久阻塞，
-    //返回活跃事件的组合（这里也可以返回int,然后提供getEvents(),但是直接返回vector更方便；
+    //返回活跃事件的组合（这里也可以返回int,然后提供getEvents(),但是直接填充到vector更方便；
     void poll(std::vector<struct epoll_event>& active_events,int timeout=-1);
 };
