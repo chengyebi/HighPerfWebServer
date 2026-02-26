@@ -56,6 +56,11 @@ void HttpConnection::handleRead(Epoll& ep) {
    if (outputBuffer_.readableBytes()>0||fileFd_!=-1) {
       handleWrite(ep);
    }
+   else {
+      // 如果没数据要发，说明是个“半包”，请求不完整
+      // 必须重新挂载 EPOLLIN，让内核等下半个包到了再通知
+      ep.modFd(socket_.getFd(), EPOLLIN | EPOLLET | EPOLLONESHOT);
+   }
 }
 //ET模式下的非阻塞写
 void HttpConnection::handleWrite(Epoll& ep) {
@@ -68,7 +73,7 @@ void HttpConnection::handleWrite(Epoll& ep) {
          len=outputBuffer_.writeFd(socket_.getFd(),&saveErrno);
          if (len<=0) {
             if (saveErrno==EAGAIN||saveErrno==EWOULDBLOCK) {
-               ep.modFd(socket_.getFd(),EPOLLIN|EPOLLOUT|EPOLLET);
+               ep.modFd(socket_.getFd(),EPOLLIN|EPOLLOUT|EPOLLET|EPOLLONESHOT);
                return;
             }
             if (saveErrno==EINTR) {
@@ -97,7 +102,7 @@ void HttpConnection::handleWrite(Epoll& ep) {
          }
          else if (sent==-1) {
             if (errno==EAGAIN||errno==EWOULDBLOCK) {
-               ep.modFd(socket_.getFd(),EPOLLIN|EPOLLOUT|EPOLLET);
+               ep.modFd(socket_.getFd(),EPOLLIN|EPOLLOUT|EPOLLET| EPOLLONESHOT);
                return;//发送缓冲区满了，等待下次EPOLLOUT
             }
             if (errno==EINTR) {
@@ -138,7 +143,7 @@ void HttpConnection::handleWrite(Epoll& ep) {
             }
          }
          //彻底空闲，安心等待下一次读事件
-         ep.modFd(socket_.getFd(),EPOLLIN|EPOLLET);
+         ep.modFd(socket_.getFd(),EPOLLIN|EPOLLET| EPOLLONESHOT);
          return;
       }
       else {

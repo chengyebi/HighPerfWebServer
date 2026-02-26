@@ -41,7 +41,7 @@ int main() {
                     //创建连接对象并存入哈希表，智能指针管理生命周期
                     connections[client_fd]=std::make_shared<HttpConnection>(client_fd);
                     //注册客户端socket的可读事件
-                    ep.addFd(client_fd,EPOLLIN|EPOLLET);
+                    ep.addFd(client_fd,EPOLLIN|EPOLLET| EPOLLONESHOT);
                 }
             }
             //场景B：已有客户端发来数据或可写
