@@ -41,7 +41,7 @@ int main() {
                     //创建连接对象并存入哈希表，智能指针管理生命周期
                     connections[client_fd]=std::make_shared<HttpConnection>(client_fd);
                     //注册客户端socket的可读事件
-                    ep.addFd(client_fd,EPOLLIN|EPOLLET| EPOLLONESHOT);
+                    ep.addFd(client_fd,EPOLLIN|EPOLLET| EPOLLONESHOT| EPOLLRDHUP);
                 }
             }
             //场景B：已有客户端发来数据或可写
@@ -49,17 +49,17 @@ int main() {
                 if (connections.count(fd)==0)
                     continue;
                 auto conn=connections[fd];
+                if (event.events&(EPOLLERR | EPOLLHUP | EPOLLRDHUP)) {
+                    connections.erase(fd);
+                    continue; // 既然清理了，就不往下走,不再读写
+                }
                 if (event.events&EPOLLIN) {
                     conn->handleRead(ep);
                 }
                 if (event.events&EPOLLOUT) {
                     conn->handleWrite(ep);
                 }
-                //收尾：如果连接被标记为关闭，将其从map中剔除
-                //此时shared_ptr引用计数为0，HttpConnection自动析构，安全释放fd
-                if (conn->isClosed()) {
-                    connections.erase(fd);
-                }
+
             }
         }
 
