@@ -170,7 +170,7 @@ void HttpConnection::process() {
       return;
    }
    //业务逻辑：构建响应
-   keepAlive_ = true;
+   keepAlive_ = request_.isKeepAlive();
    std::string path=request_.path();
    //生成 Connection 头部字符串 ---
    std::string connStr = keepAlive_ ? "Connection: keep-alive\r\n" : "Connection: close\r\n";
