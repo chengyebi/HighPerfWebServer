@@ -2,6 +2,7 @@
 #include <stdexcept>
 #include <cstring>
 #include <unistd.h>
+#include <iostream>   // 提供std::cerr
 
 //构造函数，创建epoll句柄
 Epoll::Epoll():epfd_(-1),events_(1024) {
@@ -55,13 +56,22 @@ void Epoll::modFd(int fd,uint32_t events) {
     ev.data.fd=fd;
     ev.events=events;
     if (epoll_ctl(epfd_,EPOLL_CTL_MOD,fd,&ev)==-1) {
-        throw std::runtime_error("epoll mod event error");
+        int err = errno;
+        std::cerr << "[Epoll] modFd failed, fd=" << fd
+                  << " errno=" << err
+                  << " msg=" << strerror(err) << std::endl;
+        return;
+    }
     }
 
-}
+
 void Epoll::delFd(int fd) {
     //摘除时传nullptr即可
     if (epoll_ctl(epfd_,EPOLL_CTL_DEL,fd,nullptr)==-1) {
-
+        int err = errno;
+        std::cerr << "[Epoll] modFd failed, fd=" << fd
+                  << " errno=" << err
+                  << " msg=" << strerror(err) << std::endl;
+        return;
     }
 }

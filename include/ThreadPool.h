@@ -23,7 +23,15 @@
                      auto task=std::move(pool->tasks.front());
                      pool->tasks.pop();
                      locker.unlock();
-                     task();
+                     try {
+                         task();
+                     }
+                     catch (const std::exception& e) {
+    std::cerr << "[ThreadPool] task exception: " << e.what() << std::endl;
+}
+                     catch (...) {
+    std::cerr << "[ThreadPool] unknown task exception" << std::endl;
+}
                      locker.lock();
                  }
                  else if (pool->isClosed) {
